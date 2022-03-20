@@ -19,7 +19,15 @@ function Start-MyService
         
         If (Test-Path -Path $('{0}\{1}' -f $global:ServiceHash.ServicePath, $($global:CurFileInfo | Split-Path -Leaf) -replace '\.exe$','.debug')) {
             $global:ServiceHash.ServiceDebug = $true
-            $($global:ServiceHash | ConvertTo-Json -Depth 5).ToString() | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Force
+            $($global:ServiceHash).ToString() | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Force
+            Write-Host 'Running Start-MyService'
+            'Running Start-MyService' | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
+            Write-Host "ServicePath $($global:ServiceHash.ServicePath)"
+            "ServicePath $($global:ServiceHash.ServicePath)" | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
+            Write-Host "ServiceConfigFile $($global:ServiceHash.ServiceConfigFile)"
+            "ServiceConfigFile $($global:ServiceHash.ServiceConfigFile)" | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
+            Write-Host "ServiceDebug $($global:ServiceHash.ServiceDebug)"
+            "ServiceDebug $($global:ServiceHash.ServiceDebug)" | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
         }
     #endregion Grab File Information
     
@@ -30,8 +38,12 @@ function Start-MyService
             Write-Host $_.Exception.Message
             If ($global:ServiceHash.ServiceDebug) {
                 $_.Exception.Message | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
-                $($global:ServiceHash | ConvertTo-Json -Depth 5).ToString() | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
             }
+        }
+        
+        If ($global:ServiceHash.ServiceDebug) {
+            Write-Host "Config $($global:ServiceHash.Config | ConvertTo-Json -Depth 5)"
+            "Config $($global:ServiceHash.Config | ConvertTo-Json -Depth 5)" | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
         }
     #endregion Query Json Config
         
@@ -43,33 +55,48 @@ function Start-MyService
 
 function Invoke-MyService
 {
+    If ($global:ServiceHash.ServiceDebug) {
+        Write-Host "Running Invoke-MyService"
+        "Running Invoke-MyService" | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
+    }
+    
 	$global:bServiceRunning = $true
 	While ($global:bRunService) {
-		Try { 
-                If ($global:bServicePaused -eq $false)  {
-				#Place code for your service here
-				#e.g. $ProcessList = Get-Process solitaire -ErrorAction SilentlyContinue
-				
-				# Use Write-Host or any other PowerShell output function to write to the System's application log
+		Try {
                 If ($global:ServiceHash.ServiceDebug) {
-                    Write-Host 'Running in Invoke-MyService'
-                    $($global:ServiceHash | ConvertTo-Json -Depth 5).ToString() | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
+                    Write-Host "Running Invoke-MyService - bRunService True"
+                    "Running Invoke-MyService - bRunService True" | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
                 }
-                
-                If ( $global:ServiceHash.Config.Invoke.ScriptArguments ) {
-                    Invoke-Expression -Command "$($global:ServiceHash.Config.Invoke.ScriptPath) $($global:ServiceHash.Config.Invoke.ScriptArguments)" -ErrorAction Stop
-                } Else {
-                    Invoke-Expression -Command "$($global:ServiceHash.Config.Invoke.ScriptPath)" -ErrorAction Stop
+        
+                If ($global:bServicePaused -eq $false)  {
+                    If ($global:ServiceHash.ServiceDebug) {
+                        Write-Host "Running Invoke-MyService - bServicePaused False"
+                        "Running Invoke-MyService - bServicePaused False" | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
+                    }
+                    
+    				#Place code for your service here
+    				#e.g. $ProcessList = Get-Process solitaire -ErrorAction SilentlyContinue
+    				
+    				# Use Write-Host or any other PowerShell output function to write to the System's application log
+                    If (Test-Path -Path "$($global:ServiceHash.Config.Invoke.ScriptPath)") {
+                        If ( $global:ServiceHash.Config.Invoke.ScriptArguments ) {
+                            Invoke-Expression -Command "$($global:ServiceHash.Config.Invoke.ScriptPath) $($global:ServiceHash.Config.Invoke.ScriptArguments)" -ErrorAction Stop
+                        } Else {
+                            Invoke-Expression -Command "$($global:ServiceHash.Config.Invoke.ScriptPath)" -ErrorAction Stop
+                        }
+                    } Else {
+                        Write-Host "Failed to Find Invoke.ScriptPath File: $($global:ServiceHash.Config.Invoke.ScriptPath)"
+                        "Failed to Find Invoke.ScriptPath File: $($global:ServiceHash.Config.Invoke.ScriptPath)" | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
+                    }
+    			} Else {
+                    Write-Host "Running Invoke-MyService - bServicePaused True"
+                    "Running Invoke-MyService - bServicePaused True" | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
                 }
-			} Else {
-            
-            }
 		} Catch {
 			# Log exception in application log
 			Write-Host $_.Exception.Message
             If ($global:ServiceHash.ServiceDebug) {
                 $_.Exception.Message | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
-                $($global:ServiceHash | ConvertTo-Json -Depth 5).ToString() | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
             }
 		}
 		
@@ -98,13 +125,19 @@ function Stop-MyService
 	# use remove-module to unload blocking modules
     
     If ($global:ServiceHash.ServiceDebug) {
-        $($global:ServiceHash | ConvertTo-Json -Depth 5).ToString() | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
+        Write-Host "Running Stop-MyService"
+        "Running Stop-MyService" | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
     }
     
-    If ( $global:ServiceHash.Config.Stop.ScriptArguments ) {
-        Invoke-Expression -Command "$($global:ServiceHash.Config.Stop.ScriptPath) $($global:ServiceHash.Config.Invoke.ScriptArguments)" -ErrorAction Stop
+    If (Test-Path -Path "$($global:ServiceHash.Config.Stop.ScriptPath)") {
+        If ( $global:ServiceHash.Config.Stop.ScriptArguments ) {
+            Invoke-Expression -Command "$($global:ServiceHash.Config.Stop.ScriptPath) $($global:ServiceHash.Config.Stop.ScriptArguments)" -ErrorAction Stop
+        } Else {
+            Invoke-Expression -Command "$($global:ServiceHash.Config.Stop.ScriptPath)" -ErrorAction Stop
+        }
     } Else {
-        Invoke-Expression -Command "$($global:ServiceHash.Config.Stop.ScriptPath)" -ErrorAction Stop
+        Write-Host "Failed to Find Stop.ScriptPath File: $($global:ServiceHash.Config.Stop.ScriptPath)"
+        "Failed to Find Stop.ScriptPath File: $($global:ServiceHash.Config.Stop.ScriptPath)" | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
     }
 }]]></Code>
 </File>

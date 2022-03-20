@@ -29,7 +29,7 @@ function Start-MyService
         $global:PauseScriptArguments = $($global:SServiceConfig).Pause.ScriptArguments
         $global:PauseLoopInterval = $($global:SServiceConfig).Pause.LoopInterval
         $global:ContinueScriptPath = $($global:SServiceConfig).Continue.ScriptPath
-        $global:ContinueScriptArguments $($global:SServiceConfig).Continue.ScriptArguments
+        $global:ContinueScriptArguments = $($global:SServiceConfig).Continue.ScriptArguments
     #endregion Query Json Config
         
     #region Update Execution Policy
@@ -58,9 +58,9 @@ function Invoke-MyService
 		
         #region Adjust sleep timing to determine how often your service becomes active.
     		If ($global:SServicePaused -eq $true) {
-    			Start-Sleep -Seconds 180 # if the service is paused we sleep longer between checks.
+    			Start-Sleep -Seconds $global:PauseLoopInterval # if the service is paused we sleep longer between checks.
     		} Else {
-    			Start-Sleep –Seconds 120 # a lower number will make your service active more often and use more CPU cycles
+    			Start-Sleep –Seconds $global:InvokeLoopInterval # a lower number will make your service active more often and use more CPU cycles
     		}
         #endregion Adjust sleep timing to determine how often your service becomes active.
 	}
@@ -70,7 +70,7 @@ function Invoke-MyService
 function Stop-MyService
 {
 	$global:bRunService = $false # Signal main loop to exit
-	$CountDown = 30 # Maximum wait for loop to exit
+	$CountDown = $global:StopLoopInterval # Maximum wait for loop to exit
 	while($global:bServiceRunning -and $Countdown -gt 0)
 	{
 		Start-Sleep -Seconds 1 # wait for your main loop to exit

@@ -1,0 +1,104 @@
+﻿<File version="3.2">
+  <Code><![CDATA[# Warning: Do not rename Start-MyService, Invoke-MyService and Stop-MyService functions
+
+
+function Start-MyService
+{
+	#region Initialize global variables
+    	$global:bRunService = $true
+    	$global:bServiceRunning = $false
+    	$global:bServicePaused = $false
+    #endregion Initialize global variables
+    
+    #region Grab File Information
+        $CurFileInfo = Get-Process -Id $pid | Select-Object -ExpandProperty Path
+        $global:SServicePath = $CurFileInfo | Split-Path -Parent
+        $global:SServiceFile = $($CurFileInfo | Split-Path -Leaf) -replace '\.exe$','.json'
+    #endregion Grab File Information
+    
+    #region Query Json Config
+        $global:SServiceConfig = Get-Content -Path $('{0}\{1}' -f $global:SServicePath, $global:SServiceFile)
+        $global:InvokeScriptPath = $($global:SServiceConfig).Invoke.ScriptPath
+        $global:InvokeScriptArguments = $($global:SServiceConfig).Invoke.ScriptArguments
+        $global:InvokeLoop = $($global:SServiceConfig).Invoke.Loop
+        $global:InvokeLoopInterval = $($global:SServiceConfig).Invoke.LoopInterval
+        $global:StopScriptPath = $($global:SServiceConfig).Stop.ScriptPath
+        $global:StopScriptArguments = $($global:SServiceConfig).Stop.ScriptArguments
+        $global:StopLoopInterval = $($global:SServiceConfig).Stop.LoopInterval
+        $global:PauseScriptPath = $($global:SServiceConfig).Pause.ScriptPath
+        $global:PauseScriptArguments = $($global:SServiceConfig).Pause.ScriptArguments
+        $global:PauseLoopInterval = $($global:SServiceConfig).Pause.LoopInterval
+        $global:ContinueScriptPath = $($global:SServiceConfig).Continue.ScriptPath
+        $global:ContinueScriptArguments $($global:SServiceConfig).Continue.ScriptArguments
+    #endregion Query Json Config
+        
+    #region Update Execution Policy
+        $global:CurPolicy = $(Get-ExecutionPolicy | Out-String).Trim()
+        Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope CurrentUser
+    #endregion Update Execution Policy
+}
+
+function Invoke-MyService
+{
+	$global:bServiceRunning = $true
+	While ($global:bRunService) {
+		Try {
+			If ($global:bServicePaused -eq $false)  {
+				#Place code for your service here
+				#e.g. $ProcessList = Get-Process solitaire -ErrorAction SilentlyContinue
+				
+				# Use Write-Host or any other PowerShell output function to write to the System's application log
+			} Else {
+            
+            }
+		} Catch {
+			# Log exception in application log
+			Write-Host $_.Exception.Message 
+		}
+		
+        #region Adjust sleep timing to determine how often your service becomes active.
+    		If ($global:SServicePaused -eq $true) {
+    			Start-Sleep -Seconds 180 # if the service is paused we sleep longer between checks.
+    		} Else {
+    			Start-Sleep –Seconds 120 # a lower number will make your service active more often and use more CPU cycles
+    		}
+        #endregion Adjust sleep timing to determine how often your service becomes active.
+	}
+	$global:bServiceRunning	= $false
+}
+
+function Stop-MyService
+{
+	$global:bRunService = $false # Signal main loop to exit
+	$CountDown = 30 # Maximum wait for loop to exit
+	while($global:bServiceRunning -and $Countdown -gt 0)
+	{
+		Start-Sleep -Seconds 1 # wait for your main loop to exit
+		$Countdown = $Countdown - 1
+	}
+	# Place code to be executed on service stop here
+	# Close files and connections, terminate jobs and
+	# use remove-module to unload blocking modules
+}
+
+function Pause-MyService
+{
+	# Service is being paused
+	# Save state 
+	$global:bServicePaused = $true
+	# Note that the thread your PowerShell script is running on is not suspended on 'pause'.
+	# It is your responsibility in the service loop to pause processing until a 'continue' command is issued.
+	# It is recommended to sleep for longer periods between loop iterations when the service is paused.
+	# in order to prevent excessive CPU usage by simply waiting and looping.
+}
+
+function Continue-MyService
+{
+	# Service is being continued from a paused state
+	# Restore any saved states if needed
+	$global:bServicePaused = $false
+}
+
+
+]]></Code>
+</File>

@@ -11,25 +11,24 @@ function Start-MyService
     #endregion Initialize global variables
     
     #region Grab File Information
-        $CurFileInfo = Get-Process -Id $pid | Select-Object -ExpandProperty Path
-        $global:SServicePath = $CurFileInfo | Split-Path -Parent
-        $global:SServiceFile = $($CurFileInfo | Split-Path -Leaf) -replace '\.exe$','.json'
+        $global:CurFileInfo = Get-Process -Id $pid | Select-Object -ExpandProperty Path
+        $global:Service = @{}
+        $global:Service.ServicePath = $global:CurFileInfo | Split-Path -Parent
+        $global:Service.ServiceConfigFile = $($global:CurFileInfo | Split-Path -Leaf) -replace '\.exe$','.json'
+        $global:Service.ServiceDebug = $false
+        
+        If (Test-Path $('' -f $($global:CurFileInfo | Split-Path -Leaf) -replace '\.exe$','.debug')) {
+            $global:Service.ServiceDebug = $true
+        }
     #endregion Grab File Information
     
     #region Query Json Config
-        $global:SServiceConfig = Get-Content -Path $('{0}\{1}' -f $global:SServicePath, $global:SServiceFile)
-        $global:InvokeScriptPath = $($global:SServiceConfig).Invoke.ScriptPath
-        $global:InvokeScriptArguments = $($global:SServiceConfig).Invoke.ScriptArguments
-        $global:InvokeLoop = $($global:SServiceConfig).Invoke.Loop
-        $global:InvokeLoopInterval = $($global:SServiceConfig).Invoke.LoopInterval
-        $global:StopScriptPath = $($global:SServiceConfig).Stop.ScriptPath
-        $global:StopScriptArguments = $($global:SServiceConfig).Stop.ScriptArguments
-        $global:StopLoopInterval = $($global:SServiceConfig).Stop.LoopInterval
-        $global:PauseScriptPath = $($global:SServiceConfig).Pause.ScriptPath
-        $global:PauseScriptArguments = $($global:SServiceConfig).Pause.ScriptArguments
-        $global:PauseLoopInterval = $($global:SServiceConfig).Pause.LoopInterval
-        $global:ContinueScriptPath = $($global:SServiceConfig).Continue.ScriptPath
-        $global:ContinueScriptArguments = $($global:SServiceConfig).Continue.ScriptArguments
+        Try {
+            $global:Service.Config = Get-Content -Path $('{0}\{1}' -f $global:SServicePath, $global:SServiceFile) -ErrorAction Stop
+        } Catch {
+            Write-Host $_.Exception.Message 
+            Write-Host $($global:Service | ConvertTo-Json -Depth 5)
+        }
     #endregion Query Json Config
         
     #region Update Execution Policy
@@ -48,11 +47,14 @@ function Invoke-MyService
 				#e.g. $ProcessList = Get-Process solitaire -ErrorAction SilentlyContinue
 				
 				# Use Write-Host or any other PowerShell output function to write to the System's application log
+                If ($global:Service.ServiceDebug) {
+                    Write-Host $($global:Service | ConvertTo-Json -Depth 5)
+                }
                 
-                If ( $global:InvokeScriptArguments ) {
-                    Invoke-Expression -Command "$($global:InvokeScriptPath) $($global:InvokeScriptArguments)"
+                If ( $global:Service.Config.Invoke.ScriptArguments ) {
+                    Invoke-Expression -Command "$($global:Service.Config.Invoke.ScriptPath) $($global:Service.Config.Invoke.ScriptArguments)" -ErrorAction Stop
                 } Else {
-                    Invoke-Expression -Command "$($global:InvokeScriptPath)"
+                    Invoke-Expression -Command "$($global:Service.Config.Invoke.ScriptPath)" -ErrorAction Stop
                 }
 			} Else {
             
@@ -63,10 +65,10 @@ function Invoke-MyService
 		}
 		
         #region Adjust sleep timing to determine how often your service becomes active.
-    		If ($global:SServicePaused -eq $true) {
-    			Start-Sleep -Seconds $global:PauseLoopInterval # if the service is paused we sleep longer between checks.
+    		If ($global:bServicePaused -eq $true) {
+    			Start-Sleep -Seconds $global:Service.Config.Pause.LoopInterval # if the service is paused we sleep longer between checks.
     		} Else {
-    			Start-Sleep –Seconds $global:InvokeLoopInterval # a lower number will make your service active more often and use more CPU cycles
+    			Start-Sleep –Seconds $global:Service.Config.Invoke.LoopInterval # a lower number will make your service active more often and use more CPU cycles
     		}
         #endregion Adjust sleep timing to determine how often your service becomes active.
 	}
@@ -85,10 +87,15 @@ function Stop-MyService
 	# Place code to be executed on service stop here
 	# Close files and connections, terminate jobs and
 	# use remove-module to unload blocking modules
-    If ( $global:StopScriptArguments ) {
-        Invoke-Expression -Command "$($global:StopScriptPath) $($global:StopScriptArguments)"
+    
+    If ($global:Service.ServiceDebug) {
+        Write-Host $($global:Service | ConvertTo-Json -Depth 5)
+    }
+    
+    If ( $global:Service.Config.Stop.ScriptArguments ) {
+        Invoke-Expression -Command "$($global:Service.Config.Stop.ScriptPath) $($global:Service.Config.Invoke.ScriptArguments)" -ErrorAction Stop
     } Else {
-        Invoke-Expression -Command "$($global:StopScriptPath)"
+        Invoke-Expression -Command "$($global:Service.Config.Stop.ScriptPath)" -ErrorAction Stop
     }
 }
 
@@ -101,10 +108,15 @@ function Pause-MyService
 	# It is your responsibility in the service loop to pause processing until a 'continue' command is issued.
 	# It is recommended to sleep for longer periods between loop iterations when the service is paused.
 	# in order to prevent excessive CPU usage by simply waiting and looping.
-    If ( $global:PauseScriptArguments ) {
-        Invoke-Expression -Command "$($global:PauseScriptPath) $($global:PauseScriptArguments)"
+    
+    If ($global:Service.ServiceDebug) {
+        Write-Host $($global:Service | ConvertTo-Json -Depth 5)
+    }
+    
+    If ( $global:Service.Config.Pause.ScriptArguments ) {
+        Invoke-Expression -Command "$($global:Service.Config.Pause.ScriptPath) $($global:Service.Config.Invoke.ScriptArguments)" -ErrorAction Stop
     } Else {
-        Invoke-Expression -Command "$($global:PauseScriptPath)"
+        Invoke-Expression -Command "$($global:Service.Config.Pause.ScriptPath)" -ErrorAction Stop
     }
 }
 
@@ -114,10 +126,14 @@ function Continue-MyService
 	# Restore any saved states if needed
 	$global:bServicePaused = $false
     
-    If ( $global:ContinueScriptArguments ) {
-        Invoke-Expression -Command "$($global:ContinueScriptPath) $($global:ContinueScriptArguments)"
+    If ($global:Service.ServiceDebug) {
+        Write-Host $($global:Service | ConvertTo-Json -Depth 5)
+    }
+    
+    If ( $global:Service.Config.Continue.ScriptArguments ) {
+        Invoke-Expression -Command "$($global:Service.Config.Continue.ScriptPath) $($global:Service.Config.Invoke.ScriptArguments)" -ErrorAction Stop
     } Else {
-        Invoke-Expression -Command "$($global:ContinueScriptPath)"
+        Invoke-Expression -Command "$($global:Service.Config.Continue.ScriptPath)" -ErrorAction Stop
     }
 }
 

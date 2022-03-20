@@ -1,6 +1,6 @@
 {
 	"Invoke": {
-		"ScriptPath": "C:/Source/Dev/Posh/StubS_Tests/Invoke.ps1",
+		"ScriptPath": "C:\\Source\\Dev\\Posh\\StubS_Tests\\Invoke.ps1",
 		"ScriptArguments": "",
 		"Loop": true,
 		"LoopInterval": 120,
@@ -8,17 +8,17 @@
 		"SingleThreading": true
 	},
 	"Stop": {
-		"ScriptPath": "C:/Source/Dev/Posh/StubS_Tests/Stop.ps1",
+		"ScriptPath": "C:\\Source\\Dev\\Posh\\StubS_Tests\\Stop.ps1",
 		"ScriptArguments": "",
 		"LoopInterval": 30
 	},
 	"Pause": {
-		"ScriptPath": "C:/Source/Dev/Posh/StubS_Tests/Pause.ps1",
+		"ScriptPath": "C:\\Source\\Dev\\Posh\\StubS_Tests\\Pause.ps1",
 		"ScriptArguments": "",
 		"LoopInterval": 180
 	},
 	"Continue": {
-		"ScriptPath": "C:/Source/Dev/Posh/StubS_Tests/Continue.ps1",
+		"ScriptPath": "C:\\Source\\Dev\\Posh\\StubS_Tests\\Continue.ps1",
 		"ScriptArguments": ""
 	}
 }

@@ -19,7 +19,7 @@ function Start-MyService
         
         If (Test-Path -Path $('{0}\{1}' -f $global:Service.ServicePath, $($global:CurFileInfo | Split-Path -Leaf) -replace '\.exe$','.debug')) {
             $global:Service.ServiceDebug = $true
-            '' | Out-File -FilePath $('{0}\Debugger.log' -f $global:Service.ServicePath) -Force
+            $($global:Service | ConvertTo-Json -Depth 5).ToString() | Out-File -FilePath $('{0}\Debugger.log' -f $global:Service.ServicePath) -Force
         }
     #endregion Grab File Information
     
@@ -30,7 +30,7 @@ function Start-MyService
             Write-Host $_.Exception.Message
             If ($global:Service.ServiceDebug) {
                 $_.Exception.Message | Out-File -FilePath $('{0}\Debugger.log' -f $global:Service.ServicePath) -Append
-                $($global:Service | ConvertTo-Json -Depth 5) | Out-File -FilePath $('{0}\Debugger.log' -f $global:Service.ServicePath) -Append
+                $($global:Service | ConvertTo-Json -Depth 5).ToString() | Out-File -FilePath $('{0}\Debugger.log' -f $global:Service.ServicePath) -Append
             }
         }
     #endregion Query Json Config
@@ -52,7 +52,7 @@ function Invoke-MyService
 				
 				# Use Write-Host or any other PowerShell output function to write to the System's application log
                 If ($global:Service.ServiceDebug) {
-                    $($global:Service | ConvertTo-Json -Depth 5) | Out-File -FilePath $('{0}\Debugger.log' -f $global:Service.ServicePath) -Append
+                    $($global:Service | ConvertTo-Json -Depth 5).ToString() | Out-File -FilePath $('{0}\Debugger.log' -f $global:Service.ServicePath) -Append
                 }
                 
                 If ( $global:Service.Config.Invoke.ScriptArguments ) {
@@ -68,7 +68,7 @@ function Invoke-MyService
 			Write-Host $_.Exception.Message
             If ($global:Service.ServiceDebug) {
                 $_.Exception.Message | Out-File -FilePath $('{0}\Debugger.log' -f $global:Service.ServicePath) -Append
-                $($global:Service | ConvertTo-Json -Depth 5) | Out-File -FilePath $('{0}\Debugger.log' -f $global:Service.ServicePath) -Append
+                $($global:Service | ConvertTo-Json -Depth 5).ToString() | Out-File -FilePath $('{0}\Debugger.log' -f $global:Service.ServicePath) -Append
             }
 		}
 		
@@ -97,7 +97,7 @@ function Stop-MyService
 	# use remove-module to unload blocking modules
     
     If ($global:Service.ServiceDebug) {
-        $($global:Service | ConvertTo-Json -Depth 5) | Out-File -FilePath $('{0}\Debugger.log' -f $global:Service.ServicePath) -Append
+        $($global:Service | ConvertTo-Json -Depth 5).ToString() | Out-File -FilePath $('{0}\Debugger.log' -f $global:Service.ServicePath) -Append
     }
     
     If ( $global:Service.Config.Stop.ScriptArguments ) {
@@ -118,7 +118,7 @@ function Pause-MyService
 	# in order to prevent excessive CPU usage by simply waiting and looping.
     
     If ($global:Service.ServiceDebug) {
-        $($global:Service | ConvertTo-Json -Depth 5) | Out-File -FilePath $('{0}\Debugger.log' -f $global:Service.ServicePath) -Append
+        $($global:Service | ConvertTo-Json -Depth 5).ToString() | Out-File -FilePath $('{0}\Debugger.log' -f $global:Service.ServicePath) -Append
     }
     
     If ( $global:Service.Config.Pause.ScriptArguments ) {
@@ -135,7 +135,7 @@ function Continue-MyService
 	$global:bServicePaused = $false
     
     If ($global:Service.ServiceDebug) {
-        $($global:Service | ConvertTo-Json -Depth 5) | Out-File -FilePath $('{0}\Debugger.log' -f $global:Service.ServicePath) -Append
+        $($global:Service | ConvertTo-Json -Depth 5).ToString() | Out-File -FilePath $('{0}\Debugger.log' -f $global:Service.ServicePath) -Append
     }
     
     If ( $global:Service.Config.Continue.ScriptArguments ) {
@@ -143,8 +143,5 @@ function Continue-MyService
     } Else {
         Invoke-Expression -Command "$($global:Service.Config.Continue.ScriptPath)" -ErrorAction Stop
     }
-}
-
-
-]]></Code>
+}]]></Code>
 </File>

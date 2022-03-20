@@ -106,43 +106,5 @@ function Stop-MyService
     } Else {
         Invoke-Expression -Command "$($global:ServiceHash.Config.Stop.ScriptPath)" -ErrorAction Stop
     }
-}
-
-function Pause-MyService
-{
-	# Service is being paused
-	# Save state 
-	$global:bServicePaused = $true
-	# Note that the thread your PowerShell script is running on is not suspended on 'pause'.
-	# It is your responsibility in the service loop to pause processing until a 'continue' command is issued.
-	# It is recommended to sleep for longer periods between loop iterations when the service is paused.
-	# in order to prevent excessive CPU usage by simply waiting and looping.
-    
-    If ($global:ServiceHash.ServiceDebug) {
-        $($global:ServiceHash | ConvertTo-Json -Depth 5).ToString() | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
-    }
-    
-    If ( $global:ServiceHash.Config.Pause.ScriptArguments ) {
-        Invoke-Expression -Command "$($global:ServiceHash.Config.Pause.ScriptPath) $($global:ServiceHash.Config.Invoke.ScriptArguments)" -ErrorAction Stop
-    } Else {
-        Invoke-Expression -Command "$($global:ServiceHash.Config.Pause.ScriptPath)" -ErrorAction Stop
-    }
-}
-
-function Continue-MyService
-{
-	# Service is being continued from a paused state
-	# Restore any saved states if needed
-	$global:bServicePaused = $false
-    
-    If ($global:ServiceHash.ServiceDebug) {
-        $($global:ServiceHash | ConvertTo-Json -Depth 5).ToString() | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
-    }
-    
-    If ( $global:ServiceHash.Config.Continue.ScriptArguments ) {
-        Invoke-Expression -Command "$($global:ServiceHash.Config.Continue.ScriptPath) $($global:ServiceHash.Config.Invoke.ScriptArguments)" -ErrorAction Stop
-    } Else {
-        Invoke-Expression -Command "$($global:ServiceHash.Config.Continue.ScriptPath)" -ErrorAction Stop
-    }
 }]]></Code>
 </File>

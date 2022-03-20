@@ -17,7 +17,7 @@ function Start-MyService
         $global:Service.ServiceConfigFile = $($global:CurFileInfo | Split-Path -Leaf) -replace '\.exe$','.json'
         $global:Service.ServiceDebug = $false
         
-        If (Test-Path $('' -f $($global:CurFileInfo | Split-Path -Leaf) -replace '\.exe$','.debug')) {
+        If (Test-Path -Path $('{0}\{1}' -f $global:Service.ServicePath, $($global:CurFileInfo | Split-Path -Leaf) -replace '\.exe$','.debug')) {
             $global:Service.ServiceDebug = $true
             '' | Out-File -FilePath $('{0}\Debugger.log' -f $global:Service.ServicePath) -Force
         }

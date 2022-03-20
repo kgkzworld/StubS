@@ -48,6 +48,12 @@ function Invoke-MyService
 				#e.g. $ProcessList = Get-Process solitaire -ErrorAction SilentlyContinue
 				
 				# Use Write-Host or any other PowerShell output function to write to the System's application log
+                
+                If ( $global:InvokeScriptArguments ) {
+                    Invoke-Expression -Command "$($global:InvokeScriptPath) $($global:InvokeScriptArguments)"
+                } Else {
+                    Invoke-Expression -Command "$($global:InvokeScriptPath)"
+                }
 			} Else {
             
             }
@@ -79,6 +85,11 @@ function Stop-MyService
 	# Place code to be executed on service stop here
 	# Close files and connections, terminate jobs and
 	# use remove-module to unload blocking modules
+    If ( $global:StopScriptArguments ) {
+        Invoke-Expression -Command "$($global:StopScriptPath) $($global:StopScriptArguments)"
+    } Else {
+        Invoke-Expression -Command "$($global:StopScriptPath)"
+    }
 }
 
 function Pause-MyService
@@ -90,6 +101,11 @@ function Pause-MyService
 	# It is your responsibility in the service loop to pause processing until a 'continue' command is issued.
 	# It is recommended to sleep for longer periods between loop iterations when the service is paused.
 	# in order to prevent excessive CPU usage by simply waiting and looping.
+    If ( $global:PauseScriptArguments ) {
+        Invoke-Expression -Command "$($global:PauseScriptPath) $($global:PauseScriptArguments)"
+    } Else {
+        Invoke-Expression -Command "$($global:PauseScriptPath)"
+    }
 }
 
 function Continue-MyService
@@ -97,6 +113,12 @@ function Continue-MyService
 	# Service is being continued from a paused state
 	# Restore any saved states if needed
 	$global:bServicePaused = $false
+    
+    If ( $global:ContinueScriptArguments ) {
+        Invoke-Expression -Command "$($global:ContinueScriptPath) $($global:ContinueScriptArguments)"
+    } Else {
+        Invoke-Expression -Command "$($global:ContinueScriptPath)"
+    }
 }
 
 

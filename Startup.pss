@@ -42,8 +42,8 @@ function Start-MyService
         }
         
         If ($global:ServiceHash.ServiceDebug) {
-            Write-Host "Config $($global:ServiceHash.Config | ConvertTo-Json -Depth 5)"
-            "Config $($global:ServiceHash.Config | ConvertTo-Json -Depth 5)" | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
+            Write-Host "$($global:ServiceHash.Config | ConvertTo-Json -Depth 5)"
+            "$($global:ServiceHash.Config | ConvertTo-Json -Depth 5)" | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
         }
     #endregion Query Json Config
         

@@ -52,6 +52,7 @@ function Invoke-MyService
 				
 				# Use Write-Host or any other PowerShell output function to write to the System's application log
                 If ($global:ServiceHash.ServiceDebug) {
+                    Write-Host 'Running in Invoke-MyService'
                     $($global:ServiceHash | ConvertTo-Json -Depth 5).ToString() | Out-File -FilePath $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath) -Append
                 }
                 

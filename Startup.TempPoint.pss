@@ -77,35 +77,35 @@ function Invoke-MyService
 	$global:bServiceRunning = $true
 	While ($global:bRunService) {
 		Try {
+            If ($global:ServiceHash.ServiceDebug) {
+                Write-Host "Running Invoke-MyService - bRunService True"
+                "Running Invoke-MyService - bRunService True" | Out-File -FilePath $global:ServiceHash.ServiceDebugOutput -Append
+            }
+    
+            If ($global:bServicePaused -eq $false)  {
                 If ($global:ServiceHash.ServiceDebug) {
-                    Write-Host "Running Invoke-MyService - bRunService True"
-                    "Running Invoke-MyService - bRunService True" | Out-File -FilePath $global:ServiceHash.ServiceDebugOutput -Append
+                    Write-Host "Running Invoke-MyService - bServicePaused False"
+                    "Running Invoke-MyService - bServicePaused False" | Out-File -FilePath $global:ServiceHash.ServiceDebugOutput -Append
                 }
-        
-                If ($global:bServicePaused -eq $false)  {
-                    If ($global:ServiceHash.ServiceDebug) {
-                        Write-Host "Running Invoke-MyService - bServicePaused False"
-                        "Running Invoke-MyService - bServicePaused False" | Out-File -FilePath $global:ServiceHash.ServiceDebugOutput -Append
-                    }
-                    
-    				#Place code for your service here
-    				#e.g. $ProcessList = Get-Process solitaire -ErrorAction SilentlyContinue
-    				
-    				# Use Write-Host or any other PowerShell output function to write to the System's application log
-                    If (Test-Path -Path "$($global:ServiceHash.Config.Invoke.ScriptPath)") {
-                        If ( $global:ServiceHash.Config.Invoke.ScriptArguments ) {
-                            Invoke-Expression -Command "$($global:ServiceHash.Config.Invoke.ScriptPath) $($global:ServiceHash.Config.Invoke.ScriptArguments)" -ErrorAction Stop
-                        } Else {
-                            Invoke-Expression -Command "$($global:ServiceHash.Config.Invoke.ScriptPath)" -ErrorAction Stop
-                        }
+                
+				#Place code for your service here
+				#e.g. $ProcessList = Get-Process solitaire -ErrorAction SilentlyContinue
+				
+				# Use Write-Host or any other PowerShell output function to write to the System's application log
+                If (Test-Path -Path "$($global:ServiceHash.Config.Invoke.ScriptPath)") {
+                    If ( $global:ServiceHash.Config.Invoke.ScriptArguments ) {
+                        Invoke-Expression -Command "$($global:ServiceHash.Config.Invoke.ScriptPath) $($global:ServiceHash.Config.Invoke.ScriptArguments)" -ErrorAction Stop
                     } Else {
-                        Write-Host "Failed to Find Invoke.ScriptPath File: $($global:ServiceHash.Config.Invoke.ScriptPath)"
-                        "Failed to Find Invoke.ScriptPath File: $($global:ServiceHash.Config.Invoke.ScriptPath)" | Out-File -FilePath $global:ServiceHash.ServiceDebugOutput -Append
+                        Invoke-Expression -Command "$($global:ServiceHash.Config.Invoke.ScriptPath)" -ErrorAction Stop
                     }
-    			} Else {
-                    Write-Host "Running Invoke-MyService - bServicePaused True"
-                    "Running Invoke-MyService - bServicePaused True" | Out-File -FilePath $global:ServiceHash.ServiceDebugOutput -Append
+                } Else {
+                    Write-Host "Failed to Find Invoke.ScriptPath File: $($global:ServiceHash.Config.Invoke.ScriptPath)"
+                    "Failed to Find Invoke.ScriptPath File: $($global:ServiceHash.Config.Invoke.ScriptPath)" | Out-File -FilePath $global:ServiceHash.ServiceDebugOutput -Append
                 }
+			} Else {
+                Write-Host "Running Invoke-MyService - bServicePaused True"
+                "Running Invoke-MyService - bServicePaused True" | Out-File -FilePath $global:ServiceHash.ServiceDebugOutput -Append
+            }
 		} Catch {
 			# Log exception in application log
 			Write-Host $_.Exception.Message
@@ -116,7 +116,7 @@ function Invoke-MyService
 		
         #region Adjust sleep timing to determine how often your service becomes active.
     		If ($global:bServicePaused -eq $true) {
-    			Start-Sleep -Seconds $global:ServiceHash.Config.Pause.LoopInterval # if the service is paused we sleep longer between checks.
+    			Start-Sleep -Seconds $global:ServiceHash.Config.Stop.LoopInterval # if the service is paused we sleep longer between checks.
     		} Else {
     			Start-Sleep –Seconds $global:ServiceHash.Config.Invoke.LoopInterval # a lower number will make your service active more often and use more CPU cycles
     		}
@@ -128,15 +128,8 @@ function Invoke-MyService
 function Stop-MyService
 {
 	$global:bRunService = $false # Signal main loop to exit
-	$CountDown = 30 # Maximum wait for loop to exit
-	while($global:bServiceRunning -and $Countdown -gt 0)
-	{
-		Start-Sleep -Seconds 1 # wait for your main loop to exit
-		$Countdown = $Countdown - 1
-	}
-	# Place code to be executed on service stop here
-	# Close files and connections, terminate jobs and
-	# use remove-module to unload blocking modules
+    $global:bServicePaused = $true # Signal loop to exit
+	$CountDown = $global:ServiceHash.Config.Stop.LoopInterval # Maximum wait for loop to exit
     
     If ($global:ServiceHash.ServiceDebug) {
         Write-Host "Running Stop-MyService"
@@ -153,5 +146,17 @@ function Stop-MyService
         Write-Host "Failed to Find Stop.ScriptPath File: $($global:ServiceHash.Config.Stop.ScriptPath)"
         "Failed to Find Stop.ScriptPath File: $($global:ServiceHash.Config.Stop.ScriptPath)" | Out-File -FilePath $global:ServiceHash.ServiceDebugOutput -Append
     }
+    
+    Throw "Stop Service: $($global:ServiceHash.ServiceName)"
+#	while($global:bServiceRunning -and $Countdown -gt 0)
+#	{
+#		Start-Sleep -Seconds 1 # wait for your main loop to exit
+#		$Countdown = $Countdown - 1
+#	}
+	# Place code to be executed on service stop here
+	# Close files and connections, terminate jobs and
+	# use remove-module to unload blocking modules
+    
+    
 }]]></Code>
 </File>

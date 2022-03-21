@@ -10,15 +10,6 @@
 	"Stop": {
 		"ScriptPath": "C:\\Source\\Dev\\Posh\\StubS_Tests\\Stop.ps1",
 		"ScriptArguments": "",
-		"LoopInterval": 30
-	},
-	"Pause": {
-		"ScriptPath": "C:\\Source\\Dev\\Posh\\StubS_Tests\\Pause.ps1",
-		"ScriptArguments": "",
-		"LoopInterval": 180
-	},
-	"Continue": {
-		"ScriptPath": "C:\\Source\\Dev\\Posh\\StubS_Tests\\Continue.ps1",
-		"ScriptArguments": ""
+		"LoopInterval": 10
 	}
 }

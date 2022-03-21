@@ -147,12 +147,13 @@ function Stop-MyService
         "Failed to Find Stop.ScriptPath File: $($global:ServiceHash.Config.Stop.ScriptPath)" | Out-File -FilePath $global:ServiceHash.ServiceDebugOutput -Append
     }
     
-    Throw "Stop Service: $($global:ServiceHash.ServiceName)"
-#	while($global:bServiceRunning -and $Countdown -gt 0)
-#	{
-#		Start-Sleep -Seconds 1 # wait for your main loop to exit
-#		$Countdown = $Countdown - 1
-#	}
+	while($global:bServiceRunning -and $Countdown -gt 0)
+	{
+		Start-Sleep -Seconds 1 # wait for your main loop to exit
+		$Countdown = $Countdown - 1
+	}
+    
+    $null = Stop-Process -Id $PID -Force
 	# Place code to be executed on service stop here
 	# Close files and connections, terminate jobs and
 	# use remove-module to unload blocking modules

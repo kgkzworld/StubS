@@ -17,7 +17,7 @@ function Start-MyService
         $global:ServiceHash.ServiceName = $($global:CurFileInfo | Split-Path -Leaf) -replace '\.exe$'
         $global:ServiceHash.ServiceConfigFile = $global:CurFileInfo -replace '\.exe$','.json'
         $global:ServiceHash.ServiceDebugFile = $global:CurFileInfo -replace '\.exe$','.debug'
-        $global:ServiceHash.ServiceDebugOutput = $('{0}\Debugger.log' -f $global:ServiceHash.ServicePath)
+        $global:ServiceHash.ServiceDebugOutput = $('{0}\{1}_Debugger.log' -f $global:ServiceHash.ServicePath, $global:ServiceHash.ServiceName)
         $global:ServiceHash.ServiceDebug = $false
         
         Write-Host $(" Starting Service ({0})`n

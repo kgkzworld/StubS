@@ -1,12 +1,12 @@
 {
 	"Invoke": {
-		"ScriptPath": "<FullPath_ScriptName>.ps1",
+		"ScriptPath": "C:\\Source\\Dev\\Posh\\StubS\\bin\\x64\\Invoke.ps1",
 		"ScriptArguments": "",
 		"Loop": true,
 		"LoopInterval": 30
 	},
 	"Stop": {
-		"ScriptPath": "<FullPath_ScriptName>.ps1",
+		"ScriptPath": "C:\\Source\\Dev\\Posh\\StubS\\bin\\x64\\Stop.ps1",
 		"ScriptArguments": "",
 		"LoopInterval": 15
 	}

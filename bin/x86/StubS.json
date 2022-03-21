@@ -1,0 +1,13 @@
+{
+	"Invoke": {
+		"ScriptPath": "<FullPath_ScriptName>.ps1",
+		"ScriptArguments": "",
+		"Loop": true,
+		"LoopInterval": 30
+	},
+	"Stop": {
+		"ScriptPath": "<FullPath_ScriptName>.ps1",
+		"ScriptArguments": "",
+		"LoopInterval": 15
+	}
+}

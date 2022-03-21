@@ -123,6 +123,17 @@ function Invoke-MyService
         #endregion Adjust sleep timing to determine how often your service becomes active.
 	}
 	$global:bServiceRunning	= $false
+    
+    If (Test-Path -Path "$($global:ServiceHash.Config.Stop.ScriptPath)") {
+        If ( $global:ServiceHash.Config.Stop.ScriptArguments ) {
+            Invoke-Expression -Command "$($global:ServiceHash.Config.Stop.ScriptPath) $($global:ServiceHash.Config.Stop.ScriptArguments)" -ErrorAction Stop
+        } Else {
+            Invoke-Expression -Command "$($global:ServiceHash.Config.Stop.ScriptPath)" -ErrorAction Stop
+        }
+    } Else {
+        Write-Host "Failed to Find Stop.ScriptPath File: $($global:ServiceHash.Config.Stop.ScriptPath)"
+        "Failed to Find Stop.ScriptPath File: $($global:ServiceHash.Config.Stop.ScriptPath)" | Out-File -FilePath $global:ServiceHash.ServiceDebugOutput -Append
+    }
 }
 
 function Stop-MyService
@@ -136,29 +147,11 @@ function Stop-MyService
         "Running Stop-MyService" | Out-File -FilePath $global:ServiceHash.ServiceDebugOutput -Append
     }
     
-    If (Test-Path -Path "$($global:ServiceHash.Config.Stop.ScriptPath)") {
-        If ( $global:ServiceHash.Config.Stop.ScriptArguments ) {
-            Invoke-Expression -Command "$($global:ServiceHash.Config.Stop.ScriptPath) $($global:ServiceHash.Config.Stop.ScriptArguments)" -ErrorAction Stop
-        } Else {
-            Invoke-Expression -Command "$($global:ServiceHash.Config.Stop.ScriptPath)" -ErrorAction Stop
-        }
-    } Else {
-        Write-Host "Failed to Find Stop.ScriptPath File: $($global:ServiceHash.Config.Stop.ScriptPath)"
-        "Failed to Find Stop.ScriptPath File: $($global:ServiceHash.Config.Stop.ScriptPath)" | Out-File -FilePath $global:ServiceHash.ServiceDebugOutput -Append
-    }
-    
-	<#while($global:bServiceRunning -and $Countdown -gt 0)
+	while($global:bServiceRunning -and $Countdown -gt 0)
 	{
-		Start-Sleep -Seconds 1 # wait for your main loop to exit
+		Start-Sleep -Seconds 2 # wait for your main loop to exit
 		$Countdown = $Countdown - 1
-	}#>
-    
-    $null = Stop-Process -Id $PID -Force
-    Get-Process -Name $global:ServiceHash.ServiceName
-	# Place code to be executed on service stop here
-	# Close files and connections, terminate jobs and
-	# use remove-module to unload blocking modules
-    
-    
+        #& powershell.exe -c Stop-Process -Id $PID -Force
+	}
 }]]></Code>
 </File>

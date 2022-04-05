@@ -65,9 +65,19 @@ ServiceDebugOutput: {5}" -f $global:ServiceHash.ServiceName,
         $global:CurPolicy = $(Get-ExecutionPolicy -Scope LocalMachine | Out-String).Trim()
         $global:CurProcess = $(Get-ExecutionPolicy -Scope Process | Out-String).Trim()
         $global:CurUser = $(Get-ExecutionPolicy -Scope CurrentUser | Out-String).Trim()
-        Set-ExecutionPolicy -ExecutionPolicy Bypass -ErrorAction Ignore
-        Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope CurrentUser -ErrorAction Ignore
-        Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -ErrorAction Ignore
+        $global:UpdateExecutionPolicy = $false
+        Try {
+            $null = Set-ExecutionPolicy -ExecutionPolicy Bypass -ErrorAction Stop
+            $global:UpdateExecutionPolicy = $true
+        } Catch { } 
+        Try {
+            $null = Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope CurrentUser -ErrorAction Stop
+            $global:UpdateExecutionPolicy = $true
+        } Catch { }
+        Try {
+            $null = Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -ErrorAction Stop
+            $global:UpdateExecutionPolicy = $true
+        } Catch { }
     #endregion Update Execution Policy
 }
 
@@ -158,8 +168,16 @@ function Stop-MyService
         #& powershell.exe -c Stop-Process -Id $PID -Force
 	}
     
-    Set-ExecutionPolicy -ExecutionPolicy $($global:CurPolicy) -ErrorAction Ignore
-    Set-ExecutionPolicy -ExecutionPolicy $($global:CurUser) -Scope CurrentUser -ErrorAction Ignore
-    Set-ExecutionPolicy -ExecutionPolicy $($global:CurProcess) -Scope Process -ErrorAction Ignore
+    If ($global:UpdateExecutionPolicy) {
+        Try {
+            $null = Set-ExecutionPolicy -ExecutionPolicy $($global:CurPolicy) -ErrorAction Stop
+        } Catch { } 
+        Try {
+            $null = Set-ExecutionPolicy -ExecutionPolicy $($global:CurUser) -Scope CurrentUser -ErrorAction Stop
+        } Catch { }
+        Try {
+            $null = Set-ExecutionPolicy -ExecutionPolicy $($global:CurProcess) -Scope Process -ErrorAction Stop
+        } Catch { }
+    }
 }]]></Code>
 </File>

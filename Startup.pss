@@ -62,7 +62,9 @@ ServiceDebugOutput: {5}" -f $global:ServiceHash.ServiceName,
     #endregion Query Json Config
         
     #region Update Execution Policy
-        $global:CurPolicy = $(Get-ExecutionPolicy | Out-String).Trim()
+        $global:CurPolicy = $(Get-ExecutionPolicy -Scope LocalMachine | Out-String).Trim()
+        $global:CurProcess = $(Get-ExecutionPolicy -Scope Process | Out-String).Trim()
+        $global:CurUser = $(Get-ExecutionPolicy -Scope CurrentUser | Out-String).Trim()
         Set-ExecutionPolicy -ExecutionPolicy Bypass -ErrorAction Ignore
         Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope CurrentUser -ErrorAction Ignore
         Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -ErrorAction Ignore
@@ -155,5 +157,9 @@ function Stop-MyService
 		$Countdown = $Countdown - 1
         #& powershell.exe -c Stop-Process -Id $PID -Force
 	}
+    
+    Set-ExecutionPolicy -ExecutionPolicy $($global:CurPolicy) -ErrorAction Ignore
+    Set-ExecutionPolicy -ExecutionPolicy $($global:CurUser) -Scope CurrentUser -ErrorAction Ignore
+    Set-ExecutionPolicy -ExecutionPolicy $($global:CurProcess) -Scope Process -ErrorAction Ignore
 }]]></Code>
 </File>

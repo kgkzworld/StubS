@@ -63,7 +63,9 @@ ServiceDebugOutput: {5}" -f $global:ServiceHash.ServiceName,
         
     #region Update Execution Policy
         $global:CurPolicy = $(Get-ExecutionPolicy | Out-String).Trim()
-        Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope CurrentUser
+        Set-ExecutionPolicy -ExecutionPolicy Bypass -ErrorAction Ignore
+        Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope CurrentUser -ErrorAction Ignore
+        Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -ErrorAction Ignore
     #endregion Update Execution Policy
 }
 
